@@ -26,8 +26,8 @@ import java.util.Map;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
-    private List<Task> taskList;
     private Context context;
+    private List<Task> taskList;
 
     private static final String URL_DELETE =
             "http://10.0.2.2/planify_api/delete_task.php";
@@ -41,7 +41,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-        View view = LayoutInflater.from(parent.getContext())
+        View view = LayoutInflater.from(context)
                 .inflate(R.layout.item_task, parent, false);
 
         return new ViewHolder(view);
@@ -56,21 +56,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         holder.txtDescription.setText(task.getDescription());
         holder.txtDeadline.setText("Deadline : " + task.getDeadline());
 
-        // Klik card -> Edit
-        holder.itemView.setOnClickListener(v -> {
+        // Klik card = Edit
+        holder.itemView.setOnClickListener(v -> openEdit(task));
 
-            Intent intent = new Intent(context, EditTaskActivity.class);
+        // Klik icon pensil = Edit
+        holder.imgEdit.setOnClickListener(v -> openEdit(task));
 
-            intent.putExtra("id", task.getId());
-            intent.putExtra("title", task.getTitle());
-            intent.putExtra("description", task.getDescription());
-            intent.putExtra("deadline", task.getDeadline());
-
-            context.startActivity(intent);
-
-        });
-
-        // Klik icon sampah
+        // Klik icon sampah = Delete
         holder.imgDelete.setOnClickListener(v -> {
 
             new AlertDialog.Builder(context)
@@ -86,11 +78,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
                                     if (response.trim().equals("success")) {
 
-                                        int adapterPosition = holder.getAdapterPosition();
+                                        int pos = holder.getAdapterPosition();
 
-                                        if (adapterPosition != RecyclerView.NO_POSITION) {
-                                            taskList.remove(adapterPosition);
-                                            notifyItemRemoved(adapterPosition);
+                                        if (pos != RecyclerView.NO_POSITION) {
+                                            taskList.remove(pos);
+                                            notifyItemRemoved(pos);
                                         }
 
                                     }
@@ -98,7 +90,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
                                 },
 
                                 error -> {
-
                                 }
 
                         ) {
@@ -111,19 +102,29 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
                                 return params;
                             }
-
                         };
 
                         RequestQueue queue = Volley.newRequestQueue(context);
                         queue.add(request);
 
                     })
-
                     .setNegativeButton("Batal", null)
                     .show();
 
         });
 
+    }
+
+    private void openEdit(Task task) {
+
+        Intent intent = new Intent(context, EditTaskActivity.class);
+
+        intent.putExtra("id", task.getId());
+        intent.putExtra("title", task.getTitle());
+        intent.putExtra("description", task.getDescription());
+        intent.putExtra("deadline", task.getDeadline());
+
+        context.startActivity(intent);
     }
 
     @Override
@@ -134,7 +135,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView txtTitle, txtDescription, txtDeadline;
-        ImageView imgDelete;
+        ImageView imgEdit, imgDelete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -142,6 +143,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
             txtTitle = itemView.findViewById(R.id.txtTitle);
             txtDescription = itemView.findViewById(R.id.txtDescription);
             txtDeadline = itemView.findViewById(R.id.txtDeadline);
+
+            imgEdit = itemView.findViewById(R.id.imgEdit);
             imgDelete = itemView.findViewById(R.id.imgDelete);
         }
     }

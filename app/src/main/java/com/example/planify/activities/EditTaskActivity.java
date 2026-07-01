@@ -1,12 +1,21 @@
 package com.example.planify.activities;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.planify.R;
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class EditTaskActivity extends AppCompatActivity {
 
@@ -14,6 +23,9 @@ public class EditTaskActivity extends AppCompatActivity {
     Button btnUpdate;
 
     String id;
+
+    private static final String URL_UPDATE =
+            "http://10.0.2.2/planify_api/update_task.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,16 +35,78 @@ public class EditTaskActivity extends AppCompatActivity {
         etTitle = findViewById(R.id.etTitle);
         etDescription = findViewById(R.id.etDescription);
         etDeadline = findViewById(R.id.etDeadline);
+        btnUpdate = findViewById(R.id.btnUpdate);
 
-        // Ambil data dari Intent
         id = getIntent().getStringExtra("id");
 
         etTitle.setText(getIntent().getStringExtra("title"));
         etDescription.setText(getIntent().getStringExtra("description"));
         etDeadline.setText(getIntent().getStringExtra("deadline"));
 
-        btnUpdate.setOnClickListener(v -> {
-            // Nanti kita isi updateTask()
-        });
+        btnUpdate.setOnClickListener(v -> updateTask());
+    }
+
+    private void updateTask() {
+
+        String title = etTitle.getText().toString().trim();
+        String description = etDescription.getText().toString().trim();
+        String deadline = etDeadline.getText().toString().trim();
+
+        if (TextUtils.isEmpty(title)) {
+            Toast.makeText(this, "Title wajib diisi", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StringRequest request = new StringRequest(
+                Request.Method.POST,
+                URL_UPDATE,
+
+                response -> {
+
+                    if (response.trim().equals("success")) {
+
+                        Toast.makeText(
+                                this,
+                                "Task berhasil diupdate",
+                                Toast.LENGTH_SHORT
+                        ).show();
+
+                        finish();
+
+                    } else {
+
+                        Toast.makeText(
+                                this,
+                                "Gagal mengupdate task",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+
+                },
+
+                error -> Toast.makeText(
+                        this,
+                        error.toString(),
+                        Toast.LENGTH_LONG
+                ).show()
+
+        ) {
+
+            @Override
+            protected Map<String, String> getParams() {
+
+                Map<String, String> params = new HashMap<>();
+
+                params.put("id", id);
+                params.put("title", title);
+                params.put("description", description);
+                params.put("deadline", deadline);
+
+                return params;
+            }
+        };
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(request);
     }
 }
