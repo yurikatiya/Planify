@@ -1,0 +1,16 @@
+<resources>
+
+    <color name="primary">#8B6F47</color>
+    <color name="secondary">#A67C52</color>
+
+    <color name="background">#F8F3ED</color>
+    <color name="cardColor">#FFFDF9</color>
+
+    <color name="textPrimary">#4E342E</color>
+    <color name="textSecondary">#8D6E63</color>
+
+    <color name="success">#6D9F71</color>
+
+    <color name="white">#FFFFFF</color>
+
+</resources>
