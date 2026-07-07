@@ -28,13 +28,19 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
     private Context context;
     private List<Task> taskList;
+    private OnTaskStatusChangedListener listener;
 
     private static final String URL_DELETE =
             "http://10.0.2.2/planify_api/delete_task.php";
 
-    public TaskAdapter(Context context, List<Task> taskList) {
+    public interface OnTaskStatusChangedListener {
+        void onTaskStatusChanged();
+    }
+
+    public TaskAdapter(Context context, List<Task> taskList, OnTaskStatusChangedListener listener) {
         this.context = context;
         this.taskList = taskList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -83,6 +89,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
                                         if (pos != RecyclerView.NO_POSITION) {
                                             taskList.remove(pos);
                                             notifyItemRemoved(pos);
+                                            if (listener != null) {
+                                                listener.onTaskStatusChanged();
+                                            }
                                         }
 
                                     }
