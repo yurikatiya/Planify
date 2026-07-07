@@ -2,6 +2,7 @@ package com.example.planify.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,7 +17,6 @@ import com.example.planify.adapter.TaskAdapter;
 import com.example.planify.model.Task;
 import com.example.planify.utils.SessionManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONObject;
 
@@ -24,18 +24,19 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    RecyclerView recyclerTask;
-    FloatingActionButton fabAdd;
-    BottomNavigationView bottomNavigation;
+    private RecyclerView recyclerTask;
+    private BottomNavigationView bottomNavigation;
 
-    TextView txtUsername;
+    private TextView txtUsername, txtTotalTask, txtCompletedTask;
+    private TextView txtProgressPercent, txtProgressInfo;
+    private ProgressBar progressTask;
 
-    SessionManager sessionManager;
+    private SessionManager sessionManager;
 
-    ArrayList<Task> taskList;
-    TaskAdapter adapter;
+    private ArrayList<Task> taskList;
+    private TaskAdapter adapter;
 
-    String URL_GET_TASKS;
+    private String URL_GET_TASKS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,106 +45,105 @@ public class MainActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
 
+        // Inisialisasi View
         txtUsername = findViewById(R.id.txtUsername);
+        txtTotalTask = findViewById(R.id.txtTotalTask);
+        txtCompletedTask = findViewById(R.id.txtCompletedTask);
+        txtProgressPercent = findViewById(R.id.txtProgressPercent);
+        txtProgressInfo = findViewById(R.id.txtProgressInfo);
+        progressTask = findViewById(R.id.progressTask);
+
         recyclerTask = findViewById(R.id.recyclerTask);
-        fabAdd = findViewById(R.id.fabAdd);
         bottomNavigation = findViewById(R.id.bottomNavigation);
 
-        txtUsername.setText(
-                "Hello, " +
-                        sessionManager.getUserName()
-        );
+        txtUsername.setText("Hello, " + sessionManager.getUserName());
 
-        URL_GET_TASKS =
-                "http://10.0.2.2/planify_api/get_tasks.php?user_id="
-                        + sessionManager.getUserId();
+        URL_GET_TASKS = "http://10.0.2.2/planify_api/get_tasks.php?user_id=" + sessionManager.getUserId();
 
-        recyclerTask.setLayoutManager(
-                new LinearLayoutManager(this));
-
+        recyclerTask.setLayoutManager(new LinearLayoutManager(this));
         taskList = new ArrayList<>();
 
-        adapter = new TaskAdapter(this,taskList);
+        adapter = new TaskAdapter(
+                this,
+                taskList,
+                new TaskAdapter.OnTaskStatusChangedListener() {
+                    @Override
+                    public void onTaskStatusChanged() {
+                        loadTasks();
+                    }
+                }
+        );
 
         recyclerTask.setAdapter(adapter);
 
-        fabAdd.setOnClickListener(v -> {
-
-            Intent intent =
-                    new Intent(
-                            MainActivity.this,
-                            AddTaskActivity.class
-                    );
-
-            startActivity(intent);
-        });
-
         bottomNavigation.setSelectedItemId(R.id.nav_home);
-
         bottomNavigation.setOnItemSelectedListener(item -> {
-
-            if(item.getItemId() == R.id.nav_profile){
-
-                startActivity(
-                        new Intent(
-                                MainActivity.this,
-                                ProfileActivity.class
-                        )
-                );
-
+            int id = item.getItemId();
+            if (id == R.id.nav_home) {
+                return true;
+            } else if (id == R.id.nav_add) {
+                startActivity(new Intent(MainActivity.this, AddTaskActivity.class));
+                return true;
+            } else if (id == R.id.nav_profile) {
+                startActivity(new Intent(MainActivity.this, ProfileActivity.class));
                 return true;
             }
-
-            return true;
+            return false;
         });
 
         loadTasks();
     }
 
     private void loadTasks() {
+        JsonArrayRequest request = new JsonArrayRequest(
+                URL_GET_TASKS,
+                response -> {
+                    taskList.clear();
+                    int completed = 0;
 
-        JsonArrayRequest request =
-                new JsonArrayRequest(
-                        URL_GET_TASKS,
-
-                        response -> {
-
-                            taskList.clear();
-
-                            try {
-
-                                for (int i = 0;
-                                     i < response.length();
-                                     i++) {
-
-                                    JSONObject obj =
-                                            response.getJSONObject(i);
-
-                                    Task task =
-                                            new Task(
-                                                    obj.getString("id"),
-                                                    obj.getString("title"),
-                                                    obj.getString("description"),
-                                                    obj.getString("deadline")
-                                            );
-
-                                    taskList.add(task);
-                                }
-
-                                adapter.notifyDataSetChanged();
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                    try {
+                        for (int i = 0; i < response.length(); i++) {
+                            JSONObject obj = response.getJSONObject(i);
+                            Task task = new Task(
+                                    obj.getString("id"),
+                                    obj.getString("title"),
+                                    obj.getString("description"),
+                                    obj.getString("deadline"),
+                                    obj.getString("status")
+                            );
+                            taskList.add(task);
+                            if ("1".equals(task.getStatus())) {
+                                completed++;
                             }
+                        }
 
-                        },
+                        adapter.notifyDataSetChanged();
 
-                        error -> error.printStackTrace()
-                );
+                        // Update Statistik
+                        int total = taskList.size();
+                        txtTotalTask.setText(String.valueOf(total));
+                        txtCompletedTask.setText(String.valueOf(completed));
 
-        RequestQueue queue =
-                Volley.newRequestQueue(this);
+                        // Update Progress
+                        if (total > 0) {
+                            int percent = (completed * 100) / total;
+                            txtProgressPercent.setText(percent + "%");
+                            progressTask.setProgress(percent);
+                            txtProgressInfo.setText(completed + " of " + total + " tasks completed");
+                        } else {
+                            txtProgressPercent.setText("0%");
+                            progressTask.setProgress(0);
+                            txtProgressInfo.setText("No tasks available");
+                        }
 
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> error.printStackTrace()
+        );
+
+        RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(request);
     }
 

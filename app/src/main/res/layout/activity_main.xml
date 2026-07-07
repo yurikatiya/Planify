@@ -11,35 +11,79 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <TextView
-            android:id="@+id/txtGreeting"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Good Morning ☀️"
-            android:textSize="18sp"
-            android:textColor="@color/textSecondary"/>
-
+        <!-- Username -->
         <TextView
             android:id="@+id/txtUsername"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hello, User"
+            android:text="Hello, User 👋"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:textColor="@color/textPrimary"
-            android:layout_marginTop="5dp"/>
+            android:textColor="@color/textPrimary"/>
 
+        <!-- Progress Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="6dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📈 Progress"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+
+                <TextView
+                    android:id="@+id/txtProgressPercent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textSize="34sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="8dp"/>
+
+                <ProgressBar
+                    android:id="@+id/progressTask"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp"
+                    android:layout_marginTop="12dp"
+                    android:max="100"
+                    android:progress="0"/>
+
+                <TextView
+                    android:id="@+id/txtProgressInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 of 0 tasks completed"
+                    android:textColor="#777777"
+                    android:layout_marginTop="10dp"/>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Statistik -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="20dp">
+            android:layout_marginTop="18dp">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="120dp"
+                android:layout_height="110dp"
                 android:layout_weight="1"
-                app:cardCornerRadius="20dp">
+                app:cardCornerRadius="18dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -50,14 +94,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Total Task"/>
+                        android:text="📝 Total"/>
 
                     <TextView
                         android:id="@+id/txtTotalTask"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
-                        android:textSize="30sp"
+                        android:textSize="28sp"
                         android:textStyle="bold"/>
 
                 </LinearLayout>
@@ -70,9 +114,9 @@
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="120dp"
+                android:layout_height="110dp"
                 android:layout_weight="1"
-                app:cardCornerRadius="20dp">
+                app:cardCornerRadius="18dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -83,14 +127,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Completed"/>
+                        android:text="✅ Completed"/>
 
                     <TextView
                         android:id="@+id/txtCompletedTask"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
-                        android:textSize="30sp"
+                        android:textSize="28sp"
                         android:textStyle="bold"/>
 
                 </LinearLayout>
@@ -124,15 +168,5 @@
         app:itemIconTint="@color/primary"
         app:itemTextColor="@color/primary"
         app:menu="@menu/bottom_menu"/>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAdd"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="80dp"
-        android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/primary"/>
 
 </RelativeLayout>
