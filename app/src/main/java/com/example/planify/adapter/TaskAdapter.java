@@ -5,8 +5,10 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -32,6 +34,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
     private static final String URL_DELETE =
             "http://10.0.2.2/planify_api/delete_task.php";
+    private static final String URL_UPDATE_STATUS =
+            "http://10.0.2.2/planify_api/update_status.php";
 
     public interface OnTaskStatusChangedListener {
         void onTaskStatusChanged();
@@ -61,6 +65,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         holder.txtTitle.setText(task.getTitle());
         holder.txtDescription.setText(task.getDescription());
         holder.txtDeadline.setText("Deadline : " + task.getDeadline());
+
+        // Set status checkbox
+        holder.cbStatus.setOnCheckedChangeListener(null); // Clear listener before setting checked
+        holder.cbStatus.setChecked("1".equals(task.getStatus()));
+
+        holder.cbStatus.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            String newStatus = isChecked ? "1" : "0";
+            updateStatus(task.getId(), newStatus);
+        });
 
         // Klik card = Edit
         holder.itemView.setOnClickListener(v -> openEdit(task));
@@ -124,6 +137,34 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
     }
 
+    private void updateStatus(String id, String status) {
+        StringRequest request = new StringRequest(
+                Request.Method.POST,
+                URL_UPDATE_STATUS,
+                response -> {
+                    if (response.trim().equals("success")) {
+                        if (listener != null) {
+                            listener.onTaskStatusChanged();
+                        }
+                    } else {
+                        Toast.makeText(context, "Gagal update status", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                error -> Toast.makeText(context, error.toString(), Toast.LENGTH_SHORT).show()
+        ) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("id", id);
+                params.put("status", status);
+                return params;
+            }
+        };
+
+        RequestQueue queue = Volley.newRequestQueue(context);
+        queue.add(request);
+    }
+
     private void openEdit(Task task) {
 
         Intent intent = new Intent(context, EditTaskActivity.class);
@@ -145,6 +186,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
         TextView txtTitle, txtDescription, txtDeadline;
         ImageView imgEdit, imgDelete;
+        CheckBox cbStatus;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -152,6 +194,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
             txtTitle = itemView.findViewById(R.id.txtTitle);
             txtDescription = itemView.findViewById(R.id.txtDescription);
             txtDeadline = itemView.findViewById(R.id.txtDeadline);
+            cbStatus = itemView.findViewById(R.id.cbStatus);
 
             imgEdit = itemView.findViewById(R.id.imgEdit);
             imgDelete = itemView.findViewById(R.id.imgDelete);

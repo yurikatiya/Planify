@@ -1,5 +1,6 @@
 package com.example.planify.activities;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -14,13 +15,17 @@ import com.android.volley.toolbox.Volley;
 import com.example.planify.R;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class EditTaskActivity extends AppCompatActivity {
 
     TextInputEditText etTitle, etDescription, etDeadline;
     Button btnUpdate;
+    Calendar calendar;
 
     String id;
 
@@ -43,7 +48,38 @@ public class EditTaskActivity extends AppCompatActivity {
         etDescription.setText(getIntent().getStringExtra("description"));
         etDeadline.setText(getIntent().getStringExtra("deadline"));
 
+        calendar = Calendar.getInstance();
+
+        etDeadline.setOnClickListener(v -> showDatePicker());
+        etDeadline.setFocusable(false);
+        etDeadline.setClickable(true);
+
         btnUpdate.setOnClickListener(v -> updateTask());
+    }
+
+    private void showDatePicker() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    calendar.set(Calendar.YEAR, year);
+                    calendar.set(Calendar.MONTH, month);
+                    calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                    updateLabel();
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+
+        // Prevent selecting past dates
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        datePickerDialog.show();
+    }
+
+    private void updateLabel() {
+        String myFormat = "yyyy-MM-dd";
+        SimpleDateFormat dateFormat = new SimpleDateFormat(myFormat, Locale.US);
+        etDeadline.setText(dateFormat.format(calendar.getTime()));
     }
 
     private void updateTask() {

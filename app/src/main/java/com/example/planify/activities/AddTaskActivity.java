@@ -1,5 +1,6 @@
 package com.example.planify.activities;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -12,15 +13,21 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.planify.R;
+import com.example.planify.utils.SessionManager;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class AddTaskActivity extends AppCompatActivity {
 
     TextInputEditText etTitle, etDescription, etDeadline;
     Button btnSave;
+    Calendar calendar;
+    SessionManager sessionManager;
 
     private static final String URL_ADD =
             "http://10.0.2.2/planify_api/add_task.php";
@@ -30,13 +37,45 @@ public class AddTaskActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
 
+        sessionManager = new SessionManager(this);
+
         etTitle = findViewById(R.id.etTitle);
         etDescription = findViewById(R.id.etDescription);
         etDeadline = findViewById(R.id.etDeadline);
-
         btnSave = findViewById(R.id.btnSave);
 
+        calendar = Calendar.getInstance();
+
+        etDeadline.setOnClickListener(v -> showDatePicker());
+        etDeadline.setFocusable(false);
+        etDeadline.setClickable(true);
+
         btnSave.setOnClickListener(v -> saveTask());
+    }
+
+    private void showDatePicker() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    calendar.set(Calendar.YEAR, year);
+                    calendar.set(Calendar.MONTH, month);
+                    calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                    updateLabel();
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+
+        // Prevent selecting past dates
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        datePickerDialog.show();
+    }
+
+    private void updateLabel() {
+        String myFormat = "yyyy-MM-dd";
+        SimpleDateFormat dateFormat = new SimpleDateFormat(myFormat, Locale.US);
+        etDeadline.setText(dateFormat.format(calendar.getTime()));
     }
 
     private void saveTask() {
@@ -53,6 +92,11 @@ public class AddTaskActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT
             ).show();
 
+            return;
+        }
+
+        if(TextUtils.isEmpty(deadline)){
+            Toast.makeText(this, "Deadline wajib diisi", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -97,7 +141,7 @@ public class AddTaskActivity extends AppCompatActivity {
                         Map<String,String> params =
                                 new HashMap<>();
 
-                        params.put("user_id","1");
+                        params.put("user_id", sessionManager.getUserId());
                         params.put("title",title);
                         params.put("description",description);
                         params.put("deadline",deadline);
